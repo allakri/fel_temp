@@ -7,8 +7,9 @@ from tkinter import scrolledtext, ttk, messagebox
 from typing import Optional, Dict
 from tkintermapview import TkinterMapView
 import time
+import json  # Add this import
+
 # Import cryptographic modules
-           
 from key_loader import get_random_keys, get_keys_by_index
 from encryption import encrypt_data
 from decryption import decrypt_data
@@ -376,7 +377,7 @@ class CommanderGUI:
     def decrypt_location(self, encrypted_payload, tank_id):
         """Decrypt the location data"""
         try:
-            payload = eval(encrypted_payload)  # Use json.loads for production
+            payload = json.loads(encrypted_payload)  # Use json.loads instead of eval
             
             # Load keys based on the received index
             index = payload["random_index"]

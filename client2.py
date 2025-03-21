@@ -5,6 +5,7 @@ from tkinter import Toplevel, messagebox, ttk
 from typing import Optional, Dict
 from tkintermapview import TkinterMapView
 import time
+import json  # Add this import
 
 # Import cryptographic modules
 from key_loader import get_random_keys
@@ -166,6 +167,7 @@ class TankClientGUI:
         """Initialize cryptographic components with error handling."""
         try:
             # Get encryption keys
+            keys = get_random_keys()
             (
                 self.key_aes,
                 self.key_des,
@@ -175,7 +177,7 @@ class TankClientGUI:
                 self.private_key_ecc,
                 self.public_key_ecc,
                 self.random_index
-            ) = get_random_keys()
+            ) = keys
             
             # Get a random encryption sequence
             self.methods, self.sequence_hash = get_random_sequence_from_csv()
@@ -342,7 +344,7 @@ class TankClientGUI:
                 }
 
                 # Send the encrypted location
-                self.client_socket.sendall(str(payload).encode())
+                self.client_socket.sendall(json.dumps(payload).encode())
                 self.entry_location.config(state="disabled")
                 self.submit_location.config(state="disabled")
 

@@ -79,7 +79,8 @@ def get_random_keys():
     enc_key_set, dec_key_set, random_index = select_random_key_set(encryption_key_sets, decryption_key_sets)
     print(f"\nRandomly selected key set")
     
-    return prepare_keys(enc_key_set, dec_key_set), random_index
+    keys = prepare_keys(enc_key_set, dec_key_set)
+    return keys + (random_index,)
 
 def get_keys_by_index(index, enc_filename='encryption_keys.csv', dec_filename='decryption_keys.csv'):
     encryption_key_sets, decryption_key_sets = load_keys_from_csv(enc_filename, dec_filename)
