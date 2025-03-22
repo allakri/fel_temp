@@ -148,18 +148,9 @@ class CommanderGUI:
         map_container = ttk.Frame(self.map_tab, padding=10)
         map_container.pack(fill="both", expand=True)
 
-        # Initialize offline map loader
+        # Create maps directory if it doesn't exist
         if not os.path.exists("offline_maps"):
             os.makedirs("offline_maps")
-        
-        self.offline_loader = OfflineLoader(tile_path="offline_maps")
-        
-        # Download map region for offline use
-        self.offline_loader.download_region(
-            top_left_position=(17.4850, 78.3867),
-            bottom_right_position=(17.2850, 78.5867),
-            zoom_levels=[5, 6, 7, 8, 9, 10, 11, 12]
-        )
 
         # Map Widget with offline support
         self.map_widget = TkinterMapView(
@@ -188,6 +179,32 @@ class CommanderGUI:
                   style="Action.TButton",
                   command=self.track_selected_tank).pack(side="left", padx=5)
 
+        # Download map tiles button
+        ttk.Button(controls_frame,
+                  text="Download Map Region",
+                  style="Action.TButton",
+                  command=self.download_map_region).pack(side="left", padx=5)
+
+    def download_map_region(self):
+        """Download map region for offline use"""
+        try:
+            # Get current map bounds
+            top_left = self.map_widget.get_position_north_west()
+            bottom_right = self.map_widget.get_position_south_east()
+            current_zoom = self.map_widget.get_zoom()
+
+            # Download tiles
+            self.map_widget.download_tiles(
+                [current_zoom-1, current_zoom, current_zoom+1],
+                area_top_left=top_left,
+                area_bottom_right=bottom_right,
+                database_path="offline_maps"
+            )
+            
+            messagebox.showinfo("Success", "Map region downloaded successfully!")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to download map region: {str(e)}")
+
     def create_chat_section(self):
         """Create the chat interface"""
         # Chat display area
@@ -213,18 +230,6 @@ class CommanderGUI:
             style="Action.TButton"
         )
         send_button.pack(side="right")
-
-    def send_message(self):
-        """Send message to selected tank"""
-        message = self.message_input.get().strip()
-        if message:
-            selection = self.online_tanks_list.curselection()
-            if selection:
-                tank_id = self.online_tanks_list.get(selection[0]).split()[1]
-                self.broadcast_message(f"Commander", message, tank_id)
-                self.message_input.delete(0, tk.END)
-            else:
-                messagebox.showwarning("Selection Required", "Please select a tank to send the message to.")
 
     def create_tank_management_section(self):
         """Create the tank management section"""
