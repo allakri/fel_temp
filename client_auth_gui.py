@@ -1,252 +1,154 @@
 import csv
+import sys
 import hashlib
-from tkinter import messagebox
 import tkinter as tk
-from client4b import TankClientGUI  # Import the TankClientGUI class
+from tkinter import messagebox
+from tkinter import ttk
+from client4b import TankClientGUI
 
 CSV_FILE = 'client_credentials.csv'
 
 class SystemAuthGUI:
-    def __init__(self, root, on_login_success):
+    def __init__(self, root, tank_id, on_login_success):
         self.root = root
+        self.tank_id = tank_id
         self.on_login_success = on_login_success
-        self.root.title("Tank Client Authentication")
+        self.root.title(f"Tank Client Authentication - {tank_id}")
         self.root.geometry("800x600")
-        
-        # Configure colors
-        self.colors = {
-            'primary': '#2196F3',
-            'success': '#4CAF50',
-            'error': '#f44336',
-            'warning': '#ff9800',
-            'background': '#f5f5f5',
-            'card': '#ffffff',
-            'text': '#333333'
-        }
-        
-        # Configure styles
-        self.style = {
-            'font_large': ('Arial', 16, 'bold'),
-            'font_medium': ('Arial', 12, 'bold'),
-            'font_small': ('Arial', 10),
-            'padding': 20,
-            'button_width': 15,
-            'button_height': 2
-        }
-        
-        self.root.configure(bg=self.colors['background'])
+        self.setup_styles()
         self.show_login_screen()
 
+    def setup_styles(self):
+        """Setup custom styles for the GUI"""
+        style = ttk.Style()
+        style.configure("TFrame", background="#f0f0f0")
+        style.configure("TLabel", background="#f0f0f0", font=("Arial", 12))
+        style.configure("TButton", font=("Arial", 12, "bold"), padding=10)
+        style.configure("Header.TLabel", font=("Arial", 24, "bold"), background="#4CAF50", foreground="white")
+        style.configure("Login.TButton", background="#2196F3", foreground="white")
+        style.configure("Signup.TButton", background="#4CAF50", foreground="white")
+        style.configure("Back.TButton", background="#f44336", foreground="white")
+
     def show_login_screen(self) -> None:
-        self.clear_screen()
+        for widget in self.root.winfo_children():
+            widget.destroy()
         
         # Main container
-        container = tk.Frame(self.root, bg=self.colors['background'])
-        container.place(relx=0.5, rely=0.5, anchor="center")
-        
-        # Title
-        title = tk.Label(
-            container,
-            text="Tank Authentication System",
-            font=self.style['font_large'],
-            bg=self.colors['background'],
-            fg=self.colors['text']
-        )
-        title.pack(pady=(0, 30))
-        
+        main_frame = ttk.Frame(self.root, style="TFrame")
+        main_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Header
+        header_frame = ttk.Frame(main_frame, style="TFrame")
+        header_frame.pack(pady=20)
+        ttk.Label(header_frame, text=f"Tank {self.tank_id} Login", style="Header.TLabel").pack()
+
         # Buttons container
-        button_frame = tk.Frame(container, bg=self.colors['background'])
-        button_frame.pack(pady=20)
-        
-        # Login button
-        login_button = tk.Button(
-            button_frame,
-            text="LOGIN",
-            font=self.style['font_medium'],
-            bg=self.colors['primary'],
-            fg='white',
-            width=self.style['button_width'],
-            height=self.style['button_height'],
+        button_frame = ttk.Frame(main_frame, padding=30, relief="raised", style="TFrame")
+        button_frame.pack(padx=20, pady=20)
+
+        login_button = ttk.Button(
+            button_frame, 
+            text="LOGIN", 
+            style="Login.TButton", 
             command=self.show_login_window,
-            cursor='hand2'
+            width=20
         )
-        login_button.grid(row=0, column=0, padx=10)
-        
-        # Signup button
-        signup_button = tk.Button(
-            button_frame,
-            text="SIGNUP",
-            font=self.style['font_medium'],
-            bg=self.colors['success'],
-            fg='white',
-            width=self.style['button_width'],
-            height=self.style['button_height'],
+        login_button.pack(pady=10)
+
+        signup_button = ttk.Button(
+            button_frame, 
+            text="SIGNUP", 
+            style="Signup.TButton", 
             command=self.show_signup_window,
-            cursor='hand2'
+            width=20
         )
-        signup_button.grid(row=0, column=1, padx=10)
+        signup_button.pack(pady=10)
 
     def show_login_window(self) -> None:
-        self.clear_screen()
-        
-        # Main container
-        container = tk.Frame(self.root, bg=self.colors['card'], padx=40, pady=40)
-        container.place(relx=0.5, rely=0.5, anchor="center")
-        
-        # Title
-        title = tk.Label(
-            container,
-            text="Login",
-            font=self.style['font_large'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        )
-        title.pack(pady=(0, 20))
-        
-        # Username field
-        tk.Label(
-            container,
-            text="Username:",
-            font=self.style['font_small'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        ).pack(anchor='w')
-        
-        username_entry = tk.Entry(container, font=self.style['font_small'])
-        username_entry.pack(fill='x', pady=(5, 15))
-        
-        # Password field
-        tk.Label(
-            container,
-            text="Password:",
-            font=self.style['font_small'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        ).pack(anchor='w')
-        
-        password_entry = tk.Entry(container, show="*", font=self.style['font_small'])
-        password_entry.pack(fill='x', pady=(5, 20))
-        
-        # Buttons container
-        button_frame = tk.Frame(container, bg=self.colors['card'])
-        button_frame.pack(fill='x', pady=(20, 0))
-        
-        # Back button
-        back_button = tk.Button(
-            button_frame,
-            text="Back",
-            font=self.style['font_small'],
-            command=self.show_login_screen,
-            bg=self.colors['warning'],
-            fg='white',
-            cursor='hand2'
-        )
-        back_button.pack(side='left')
-        
-        # Login button
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        frame = ttk.Frame(self.root, padding=20)
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        ttk.Label(frame, text=f"Tank {self.tank_id} Login", style="Header.TLabel").pack(pady=20)
+
+        ttk.Label(frame, text="Username:", style="TLabel").pack(pady=5)
+        username_entry = ttk.Entry(frame, font=("Arial", 12), width=30)
+        username_entry.pack(pady=5)
+
+        ttk.Label(frame, text="Password:", style="TLabel").pack(pady=5)
+        password_entry = ttk.Entry(frame, show="*", font=("Arial", 12), width=30)
+        password_entry.pack(pady=5)
+
+        button_frame = ttk.Frame(frame)
+        button_frame.pack(pady=20)
+
         def login():
             username = username_entry.get()
             password = password_entry.get()
             if self.verify_login(username, password):
-                messagebox.showinfo("Success", "Login successful!")
                 self.on_login_success(username)
             else:
-                messagebox.showerror("Error", "Invalid username or password.")
+                messagebox.showerror("Login Failed", "Invalid username or password.")
 
-        login_button = tk.Button(
-            button_frame,
-            text="Login",
-            font=self.style['font_small'],
-            command=login,
-            bg=self.colors['primary'],
-            fg='white',
-            cursor='hand2'
-        )
-        login_button.pack(side='right')
+        ttk.Button(
+            button_frame, 
+            text="Login", 
+            style="Login.TButton", 
+            command=login
+        ).pack(side="left", padx=5)
+
+        ttk.Button(
+            button_frame, 
+            text="Back", 
+            style="Back.TButton", 
+            command=self.show_login_screen
+        ).pack(side="left", padx=5)
 
     def show_signup_window(self) -> None:
-        self.clear_screen()
-        
-        # Main container
-        container = tk.Frame(self.root, bg=self.colors['card'], padx=40, pady=40)
-        container.place(relx=0.5, rely=0.5, anchor="center")
-        
-        # Title
-        title = tk.Label(
-            container,
-            text="Sign Up",
-            font=self.style['font_large'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        )
-        title.pack(pady=(0, 20))
-        
-        # Username field
-        tk.Label(
-            container,
-            text="Username:",
-            font=self.style['font_small'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        ).pack(anchor='w')
-        
-        username_entry = tk.Entry(container, font=self.style['font_small'])
-        username_entry.pack(fill='x', pady=(5, 15))
-        
-        # Password field
-        tk.Label(
-            container,
-            text="Password:",
-            font=self.style['font_small'],
-            bg=self.colors['card'],
-            fg=self.colors['text']
-        ).pack(anchor='w')
-        
-        password_entry = tk.Entry(container, show="*", font=self.style['font_small'])
-        password_entry.pack(fill='x', pady=(5, 20))
-        
-        # Buttons container
-        button_frame = tk.Frame(container, bg=self.colors['card'])
-        button_frame.pack(fill='x', pady=(20, 0))
-        
-        # Back button
-        back_button = tk.Button(
-            button_frame,
-            text="Back",
-            font=self.style['font_small'],
-            command=self.show_login_screen,
-            bg=self.colors['warning'],
-            fg='white',
-            cursor='hand2'
-        )
-        back_button.pack(side='left')
-        
-        # Signup button
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        frame = ttk.Frame(self.root, padding=20)
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        ttk.Label(frame, text=f"Tank {self.tank_id} Sign Up", style="Header.TLabel").pack(pady=20)
+
+        ttk.Label(frame, text="Username:", style="TLabel").pack(pady=5)
+        username_entry = ttk.Entry(frame, font=("Arial", 12), width=30)
+        username_entry.pack(pady=5)
+
+        ttk.Label(frame, text="Password:", style="TLabel").pack(pady=5)
+        password_entry = ttk.Entry(frame, show="*", font=("Arial", 12), width=30)
+        password_entry.pack(pady=5)
+
+        button_frame = ttk.Frame(frame)
+        button_frame.pack(pady=20)
+
         def signup():
             username = username_entry.get()
             password = password_entry.get()
             if self.username_exists(username):
-                messagebox.showerror("Error", "Username already exists.")
+                messagebox.showerror("Signup Failed", "Username already exists.")
             else:
                 self.store_credentials(username, password)
-                messagebox.showinfo("Success", "Account created successfully!")
+                messagebox.showinfo("Signup Successful", "Account created successfully!")
                 self.show_login_screen()
 
-        signup_button = tk.Button(
-            button_frame,
-            text="Sign Up",
-            font=self.style['font_small'],
-            command=signup,
-            bg=self.colors['success'],
-            fg='white',
-            cursor='hand2'
-        )
-        signup_button.pack(side='right')
+        ttk.Button(
+            button_frame, 
+            text="Sign Up", 
+            style="Signup.TButton", 
+            command=signup
+        ).pack(side="left", padx=5)
 
-    def clear_screen(self):
-        """Clear all widgets from the screen"""
-        for widget in self.root.winfo_children():
-            widget.destroy()
+        ttk.Button(
+            button_frame, 
+            text="Back", 
+            style="Back.TButton", 
+            command=self.show_login_screen
+        ).pack(side="left", padx=5)
 
     def username_exists(self, username: str) -> bool:
         try:
@@ -278,17 +180,14 @@ class SystemAuthGUI:
         return False
 
 if __name__ == "__main__":
+    tank_id = sys.argv[1] if len(sys.argv) > 1 else "Unknown Tank"
+
     def on_login_success(username):
-        root.withdraw()  # Hide the login window instead of destroying it
+        root.destroy()
         tank_root = tk.Tk()
-        tank_client = TankClientGUI(tank_root, username)
-        tank_root.protocol("WM_DELETE_WINDOW", lambda: on_client_close(tank_root))
+        TankClientGUI(tank_root, username)
         tank_root.mainloop()
 
-    def on_client_close(tank_root):
-        tank_root.destroy()
-        root.deiconify()  # Show the login window again
-
     root = tk.Tk()
-    app = SystemAuthGUI(root, on_login_success)
+    app = SystemAuthGUI(root, tank_id, on_login_success)
     root.mainloop()
